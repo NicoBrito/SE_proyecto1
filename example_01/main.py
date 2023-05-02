@@ -1,11 +1,8 @@
-from machine import Pin,ADC
+from machine import Pin
 import utime
 import time 
-from motor import Motor
+#from motor import Motor
 import Stepper
-
-
-# var = ADC(0)
 
 class Weight:
     def __init__(self, pin_dt_num, pin_sck_num, calibration=1):
@@ -41,64 +38,66 @@ class Weight:
         weight = data * calibration_factor
         
         return weight
-
-
     
+
 class Motor:
 
-    def __init__(self):
-        self.in1 = ADC(0)
-        self.in2 = ADC(1)
-        self.in3 = ADC(2)
-        self.in4 = ADC(3)
-        #self.in1 = Pin(in1,Pin.OUT)
-        #self.in2 = Pin(in2,Pin.OUT)
-        #self.in3 = Pin(in3,Pin.OUT)
-        #self.in4 = Pin(in4,Pin.OUT)
+    def __init__(self,in1,in2,in3,in4):
+        self.in1 = Pin(in1,Pin.OUT)
+        self.in2 = Pin(in2,Pin.OUT)
+        self.in3 = Pin(in3,Pin.OUT)
+        self.in4 = Pin(in4,Pin.OUT)
         self.s1 = Stepper.create(self.in1,self.in2,self.in3,self.in4, delay=1)
 
     def spin(self, food="Mani"):
-        weight_sensor = Weight(14, 21)
         while True:
-            # Check the state of the buttons
-            mani_button = Pin(13, Pin.IN, Pin.PULL_UP)
-            almendra_button = Pin(32, Pin.IN, Pin.PULL_UP)
-            #nuez_button = Pin(18, Pin.IN, Pin.PULL_UP)
-            #power_button = Pin(19, Pin.IN, Pin.PULL_UP)
-            
-            if mani_button.value() == 0:
-                food = "Mani"
-            elif almendra_button.value() == 0:
-                food = "Almendra"
-           # elif nuez_button.value() == 0:
-            #    food = "Nuez"
-            #elif power_button.value() == 0:
-            #    break  # exit the loop if the power button is pressed
-                
-            print("Current food:", food)
             self.s1.step(100, -1)
-print("HOLA")           
+
+
+weight_sensor = Weight(14, 21)
+motor = Motor(33, 15, 27, 12)
 mani_button = Pin(32, Pin.IN, Pin.PULL_UP)
 almendra_button = Pin(13, Pin.IN, Pin.PULL_UP)
-motor = Motor()
-weight_sensor = Weight(14, 21)
+
+
 food = "nada"
-weight_asked = 1000 #113.1
+weight_asked = 1000 # 113.1
+
+first_weight = weight_sensor.get_weight()
+print("First Weight: ", first_weight)
+
+
+while True:
+    first_weight_changed = weight_sensor.get_weight()
+    print("Box weight: ", first_weight_changed)
+    if mani_button.value() == 0:
+        food = "mani"
+        objective = 84.6
+        break
+    elif almendra_button.value() == 0:
+        food = "almendra"
+        objective = 100.4
+        break
+#NUECES : 107.133
+w = first_weight_changed - first_weight 
+print("W es: ", w)
+print("SE PIDE ESTA COMIDA: ", food," que debe pesar ", objective," y con el bowl: ", objective+w)
+objective += w
+out = 0
 while True:
     
-    a = weight_sensor.get_weight()
-    print(a)
-    if a >= weight_asked:
-        break  # exit the loop
+    for i in range(2): # Rotate forward two times
+        a = weight_sensor.get_weight()
+        print("Weight: ",a)
+        if (a) >= objective:
+            print("PESO FINAL: ", a)
+            out = 1
+            break  # exit the loop
+    if out == 1:
+        break    
     else:
-        print("Weight: ", a)
         motor.s1.step(100,-1)
-        if mani_button.value() == 0:
-            food = "Mani"
-            print("Current food:", food)
-            
-            weight_asked = 86.6 #50 gramos
-        elif almendra_button.value() == 0:
-            food = "Almendra"
-            print("Current food:", food)
-            weight_asked = 102.0062 #80 gramos
+    if out == 1:
+        break
+    motor.s1.step(50) 
+    
