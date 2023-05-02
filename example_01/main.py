@@ -1,23 +1,95 @@
+from machine import Pin
+import utime
+import time 
+from motor import Motor
 import Stepper
-from machine import Pin, ADC
-import time
- 
+class Weight:
+    def __init__(self, pin_dt_num, pin_sck_num, calibration=1):
+        self.dt_pin = Pin(pin_dt_num, Pin.IN)
+        self.sck_pin = Pin(pin_sck_num, Pin.OUT)
+        self.calibration = calibration
 
-def motor():
-    In1 = Pin(32,Pin.OUT)
-    In2 = Pin(33,Pin.OUT)
-    In3 = Pin(14,Pin.OUT)
-    In4 = Pin(21,Pin.OUT)
-    infrarouge = ADC(Pin(34))
-    s1 = Stepper.create(In1,In2,In3,In4, delay=1)
-    while True:
-        s1.step(500) # rotate the stepper motor clockwise
-        #s1.step(500,-1) # rotate the stepper motor anti-clockwise
+    def get_weight(self):
+        # Wait for the HX711 to become ready
+        while self.dt_pin.value() == 1: 
+            pass
 
-#    def pesa():
-#    pass
+        # Create a variable to store the raw 24-bit data
+        data = 0
+
+        # Read the raw 24-bit data from the HX711
+        for i in range(24):
+            self.sck_pin.on()
+            time.sleep_us(1)
+            data <<= 1
+            self.sck_pin.off()
+            time.sleep_us(1)
+            data |= self.dt_pin.value()
+
+        # Set the channel and gain factor for the next reading
+        self.sck_pin.on()
+        self.sck_pin.off()
+
+        # Wait for the HX711 to settle
+        time.sleep(0.1)
+        calibration_factor =138/494881
+        # Convert the raw data to a weight using the calibration factor
+        weight = data * calibration_factor
+        
+        return weight
 
 
+    
+class Motor:
 
-motor() #Despues pasar parametros del PESO y MODO DE FRUTO SECO motor(peso,modo)
-#pesa()
+    def __init__(self,in1,in2,in3,in4):
+        self.in1 = Pin(in1,Pin.OUT)
+        self.in2 = Pin(in2,Pin.OUT)
+        self.in3 = Pin(in3,Pin.OUT)
+        self.in4 = Pin(in4,Pin.OUT)
+        self.s1 = Stepper.create(self.in1,self.in2,self.in3,self.in4, delay=1)
+
+    def spin(self, food="Mani"):
+        weight_sensor = Weight(14, 21)
+        while True:
+            # Check the state of the buttons
+            mani_button = Pin(13, Pin.IN, Pin.PULL_UP)
+            almendra_button = Pin(32, Pin.IN, Pin.PULL_UP)
+            #nuez_button = Pin(18, Pin.IN, Pin.PULL_UP)
+            #power_button = Pin(19, Pin.IN, Pin.PULL_UP)
+            
+            if mani_button.value() == 0:
+                food = "Mani"
+            elif almendra_button.value() == 0:
+                food = "Almendra"
+           # elif nuez_button.value() == 0:
+            #    food = "Nuez"
+            #elif power_button.value() == 0:
+            #    break  # exit the loop if the power button is pressed
+                
+            print("Current food:", food)
+            self.s1.step(100, -1)
+            
+mani_button = Pin(32, Pin.IN, Pin.PULL_UP)
+almendra_button = Pin(13, Pin.IN, Pin.PULL_UP)
+motor = Motor(33, 15, 27, 12)
+weight_sensor = Weight(14, 21)
+food = "nada"
+weight_asked = 1000 #113.1
+while True:
+    a = weight_sensor.get_weight()
+    print(a)
+    if a >= weight_asked:
+        break  # exit the loop
+    else:
+        print("Weight: ", a)
+        motor.s1.step(100,-1)
+        if mani_button.value() == 0:
+            food = "Mani"
+            print("Current food:", food)
+            
+            weight_asked = 86.6 #50 gramos
+        elif almendra_button.value() == 0:
+            food = "Almendra"
+            print("Current food:", food)
+            weight_asked = 102.0062 #80 gramos
