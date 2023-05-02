@@ -1,8 +1,12 @@
-from machine import Pin
+from machine import Pin,ADC
 import utime
 import time 
 from motor import Motor
 import Stepper
+
+
+# var = ADC(0)
+
 class Weight:
     def __init__(self, pin_dt_num, pin_sck_num, calibration=1):
         self.dt_pin = Pin(pin_dt_num, Pin.IN)
@@ -42,11 +46,15 @@ class Weight:
     
 class Motor:
 
-    def __init__(self,in1,in2,in3,in4):
-        self.in1 = Pin(in1,Pin.OUT)
-        self.in2 = Pin(in2,Pin.OUT)
-        self.in3 = Pin(in3,Pin.OUT)
-        self.in4 = Pin(in4,Pin.OUT)
+    def __init__(self):
+        self.in1 = ADC(0)
+        self.in2 = ADC(1)
+        self.in3 = ADC(2)
+        self.in4 = ADC(3)
+        #self.in1 = Pin(in1,Pin.OUT)
+        #self.in2 = Pin(in2,Pin.OUT)
+        #self.in3 = Pin(in3,Pin.OUT)
+        #self.in4 = Pin(in4,Pin.OUT)
         self.s1 = Stepper.create(self.in1,self.in2,self.in3,self.in4, delay=1)
 
     def spin(self, food="Mani"):
@@ -69,14 +77,15 @@ class Motor:
                 
             print("Current food:", food)
             self.s1.step(100, -1)
-            
+print("HOLA")           
 mani_button = Pin(32, Pin.IN, Pin.PULL_UP)
 almendra_button = Pin(13, Pin.IN, Pin.PULL_UP)
-motor = Motor(33, 15, 27, 12)
+motor = Motor()
 weight_sensor = Weight(14, 21)
 food = "nada"
 weight_asked = 1000 #113.1
 while True:
+    
     a = weight_sensor.get_weight()
     print(a)
     if a >= weight_asked:

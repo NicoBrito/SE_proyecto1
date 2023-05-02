@@ -38,7 +38,9 @@ class Weight:
         return weight
     
 
-
+weight_sensor = Weight(14, 21)
+while True:
+    weight_sensor.get_weight()
 
 
 
