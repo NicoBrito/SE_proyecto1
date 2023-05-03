@@ -67,17 +67,19 @@ nuez_button = Pin(32, Pin.IN, Pin.PULL_UP)
 start_button = Pin(15, Pin.IN, Pin.PULL_UP) 
 # PIN dist
 dist_sensor = HCSR04(trigger_pin=2, echo_pin=35, echo_timeout_us=10000)
-led_green = Pin(4, Pin.OUT)
-led_red = Pin(16, Pin.OUT)
+led_green = Pin(16, Pin.OUT)
+led_red = Pin(4, Pin.OUT)
 # VAL
 food = "nada"
 weight_asked = 1000 
+print(weight_sensor.get_weight()) 
 first_weight = weight_sensor.get_weight()
 print("First Weight: ", first_weight)
 on = 1
 # ----------------------------------------------
 while True:
     print("esperando")
+    time.sleep(0.3)
     on = start_button.value()
     if on == 0:
 
@@ -123,7 +125,7 @@ while True:
             #---------LED SENSOR DISTANCIA----------------
             distance = dist_sensor.distance_cm()
             print('Distance:', distance, 'cm')
-            if distance < 10:
+            if distance < 17.6:
                 led_red.value(0)
                 led_green.value(1)
             else:
@@ -145,5 +147,5 @@ while True:
                 motor.s1.step(100,-1)
             if out == 1:
                 break
-            motor.s1.step(50) 
+            motor.s1.step(55, 1) 
             # -------------------------------------------------------
