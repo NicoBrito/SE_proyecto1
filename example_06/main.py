@@ -43,7 +43,6 @@ class Weight:
     
 
 class Motor:
-
     def __init__(self,in1,in2,in3,in4):
         self.in1 = Pin(in1,Pin.OUT)
         self.in2 = Pin(in2,Pin.OUT)
@@ -57,81 +56,94 @@ class Motor:
 # ----------------------------------------------
 
 # -----------------BOOTING----------------------
+# PIN motor/weight
 weight_sensor = Weight(26, 27)
 motor = Motor(19, 18, 5, 17)
+# PIN food
 mani_button = Pin(25, Pin.IN, Pin.PULL_UP)
 almendra_button = Pin(33, Pin.IN, Pin.PULL_UP)
+nuez_button = Pin(32, Pin.IN, Pin.PULL_UP)
+#PIN start
+start_button = Pin(15, Pin.IN, Pin.PULL_UP) 
+# PIN dist
 dist_sensor = HCSR04(trigger_pin=2, echo_pin=35, echo_timeout_us=10000)
 led_green = Pin(4, Pin.OUT)
 led_red = Pin(16, Pin.OUT)
-
+# VAL
 food = "nada"
-weight_asked = 1000 # 113.1
-
+weight_asked = 1000 
 first_weight = weight_sensor.get_weight()
 print("First Weight: ", first_weight)
+on = 1
 # ----------------------------------------------
-
 while True:
-    #---------LED PROXIMITY SENSOR----------------
-    distance = dist_sensor.distance_cm()
-    print('Distance:', distance, 'cm')
-    if distance < 10: #Valor a cambiar segun "estanque"   
-        led_red.value(0)
-        led_green.value(1)
-    else:
-        led_red.value(1)
-        led_green.value(0)
-    #--------------------------------------------
+    print("esperando")
+    on = start_button.value()
+    if on == 0:
 
-    #---------- LEER BOTONES --------------------
-    time.sleep(0.01)
-    first_weight_changed = weight_sensor.get_weight()
-    print("Box weight: ", first_weight_changed)
-    if mani_button.value() == 0:
-        food = "mani"
-        objective = 84.6
-        break
-    elif almendra_button.value() == 0:
-        food = "almendra"
-        objective = 100.4
-        break
-#NUECES : 107.133
-# ----------------------------------------------
+        while True:
+            #---------LED PROXIMITY SENSOR----------------
+            distance = dist_sensor.distance_cm()
+            print('Distance:', distance, 'cm')
+            if distance < 10: #Valor a cambiar segun "estanque"   
+                led_red.value(0)
+                led_green.value(1)
+            else:
+                led_red.value(1)
+                led_green.value(0)
+            #--------------------------------------------
 
-# -----------CALCULA EL OFFSET DEL BOWL----------------
-w = first_weight_changed - first_weight 
-print("W es: ", w)
-print("SE PIDE ESTA COMIDA: ", food," que debe pesar ", objective," y con el bowl: ", objective+w)
-objective += w
-out = 0
-# -----------------------------------------------------
+            #---------- LEER BOTONES --------------------
+            time.sleep(0.01)
+            first_weight_changed = weight_sensor.get_weight()
+            print("Box weight: ", first_weight_changed)
+            if mani_button.value() == 0:
+                food = "mani"
+                objective = 84.6
+                break
+            elif almendra_button.value() == 0:
+                food = "almendra"
+                objective = 100.4
+                break
+            elif nuez_button.value()== 0:
+                food = "nuez"
+                objective = 107.133
+                break 
+        # ----------------------------------------------
 
-while True:
-    #---------LED SENSOR DISTANCIA----------------
-    distance = dist_sensor.distance_cm()
-    print('Distance:', distance, 'cm')
-    if distance < 10:
-        led_red.value(0)
-        led_green.value(1)
-    else:
-        led_red.value(1)
-        led_green.value(0)
-    #--------------------------------------------
-    
-    # ---------LEER PESO MOVER MOTOR-------------------------
-    for i in range(2): # Rotate forward two times
-        a = weight_sensor.get_weight()
-        print("Weight: ",a)
-        if (a) >= objective:
-            print("PESO FINAL: ", a)
-            out = 1
-            break  # exit the loop
-    if out == 1:
-        break    
-    else:
-        motor.s1.step(100,-1)
-    if out == 1:
-        break
-    motor.s1.step(50) 
-    # -------------------------------------------------------
+        # -----------CALCULA EL OFFSET DEL BOWL----------------
+        w = first_weight_changed - first_weight 
+        print("W es: ", w)
+        print("SE PIDE ESTA COMIDA: ", food," que debe pesar ", objective," y con el bowl: ", objective+w)
+        objective += w
+        out = 0
+        # -----------------------------------------------------
+
+        while True:
+            #---------LED SENSOR DISTANCIA----------------
+            distance = dist_sensor.distance_cm()
+            print('Distance:', distance, 'cm')
+            if distance < 10:
+                led_red.value(0)
+                led_green.value(1)
+            else:
+                led_red.value(1)
+                led_green.value(0)
+            #--------------------------------------------
+            
+            # ---------LEER PESO MOVER MOTOR-------------------------
+            for i in range(2): # Rotate forward two times
+                a = weight_sensor.get_weight()
+                print("Weight: ",a)
+                if (a) >= objective:
+                    print("PESO FINAL: ", a)
+                    out = 1
+                    break  # exit the loop
+            if out == 1:
+                break    
+            else:
+                motor.s1.step(100,-1)
+            if out == 1:
+                break
+            motor.s1.step(50) 
+            # -------------------------------------------------------
