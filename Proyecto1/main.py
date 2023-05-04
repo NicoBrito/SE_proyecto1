@@ -102,18 +102,18 @@ while True:
             print("Box weight: ", first_weight_changed)
             if mani_button.value() == 0:
                 food = "mani"
-                speed = 90
-                objective = 87.7 #3 menos
+                speed = 110
+                objective = 90.7 #3 menos
                 break
             elif almendra_button.value() == 0:
                 food = "almendra"
                 speed = 100
-                objective = 118.6 #1 menos
+                objective = 119 #1 menos
                 break
             elif nuez_button.value()== 0:
                 food = "nuez"
                 speed = 100
-                objective = 106.01 #3 menos
+                objective = 108 #3 menos
                 break 
         # ----------------------------------------------
 
