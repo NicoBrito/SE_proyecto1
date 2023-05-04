@@ -71,6 +71,7 @@ led_green = Pin(16, Pin.OUT)
 led_red = Pin(4, Pin.OUT)
 # VAL
 food = "nada"
+speed = 0
 weight_asked = 1000 
 print(weight_sensor.get_weight()) 
 first_weight = weight_sensor.get_weight()
@@ -101,15 +102,18 @@ while True:
             print("Box weight: ", first_weight_changed)
             if mani_button.value() == 0:
                 food = "mani"
-                objective = 84.6
+                speed = 90
+                objective = 87.7 #3 menos
                 break
             elif almendra_button.value() == 0:
                 food = "almendra"
-                objective = 100.4
+                speed = 100
+                objective = 118.6 #1 menos
                 break
             elif nuez_button.value()== 0:
                 food = "nuez"
-                objective = 107.133
+                speed = 100
+                objective = 106.01 #3 menos
                 break 
         # ----------------------------------------------
 
@@ -144,8 +148,8 @@ while True:
             if out == 1:
                 break    
             else:
-                motor.s1.step(100,-1)
-            if out == 1:
+                motor.s1.step(speed,-1)
+            if out == 1: 
                 break
             motor.s1.step(55, 1) 
             # -------------------------------------------------------
